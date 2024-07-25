@@ -1,5 +1,7 @@
-from p5 import *
 import random
+from utils import StackFrontier, QueueFrontier, Node
+import time
+import copy
 
 #RULES
 #1. The board is a grid of cells
@@ -16,6 +18,7 @@ def setVal(vec, val, grid): # spec is a boolean that indicates if the update is 
     x, y = vec.x, vec.y
     grid[y][x] = val
     return grid
+
 class Board():
     def __init__(self, width, height, cell_size):
         self.width = width
@@ -23,11 +26,9 @@ class Board():
         self.cell_size = cell_size
         self.grid = [[random.choice(['r', 'g', 'b'])  for _ in range(width)] for _ in range(height)]
         self.pos = intVector(random.randint(0, width-1), random.randint(0, height-1))
-        # get char at pos
-        char = self.grid[int(self.pos.y)][int(self.pos.x)]
-        # make char at pos uppercase
-        self.grid[int(self.pos.y)][int(self.pos.x)] = char.upper()
-        self.state = self.count()
+        self.char = self.getVal(self.pos)
+        self.goal = [[self.char] * self.width] * self.height #goal set <- change this line to TODO
+        self.count()
     def count(self):
         count = 0
         val = self.getVal(self.pos).lower()
@@ -35,22 +36,11 @@ class Board():
             for cell in row:
                 if cell.lower() == val:
                     count += 1
-        return
-    # display the board in p5
-    def display(self):
-        colors = {'r': Color(255, 0, 0), 'g': Color(0, 255, 0), 'b': Color(0, 0, 255)}
-        for y, row in enumerate(self.grid):
-            for x, cell in enumerate(row):
-                fill(colors[cell.lower()])
-                rect((x * self.cell_size, y * self.cell_size), self.cell_size, self.cell_size)
-                if self.pos.x == x and self.pos.y == y:
-                    stroke(0)
-                    rect((x * self.cell_size, y * self.cell_size), self.cell_size, self.cell_size)
-                    ellipse((x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2), self.cell_size // 2, self.cell_size // 2)
-                    noStroke()
-    # print the board in the console
     def print(self):
-        for row in self.grid:
+        printGrid = copy.deepcopy(self.grid) # copy the grid without reference
+        printGrid = setVal(self.pos, self.char.upper(), printGrid)
+        
+        for row in printGrid:
             print(''.join(row))
     def neighbors(self):
         x, y = self.pos.x, self.pos.y
@@ -79,24 +69,25 @@ class Board():
     def getVal(self, vec):
         x, y = vec.x, vec.y
         return self.grid[y][x]
-    def setVal(self, vec, val):
+    def setVal(self, vec, val, inplace = True):
         x, y = vec.x, vec.y
-        self.grid[y][x] = val
+        if inplace:
+            self.grid[y][x] = val
+        else: 
+            return setVal(vec, val, self.grid)
     def moves(self):
         moves = []
         for neighbor in self.neighbors():
             # spread colors to  neighbors to the diagonal
             if self.is_diagonal(self.pos, neighbor):
                 # if color is not already the same  
-                if self.getVal(neighbor).lower() != self.getVal(self.pos).lower():
+                if self.getVal(neighbor) != self.getVal(self.pos):
                     moves.append(('spread_color', neighbor))
             # swap places to the top, bottom, left, or right 
             else:
                 neighborVal = self.getVal(neighbor)
                 agentVal = self.getVal(self.pos)
                 moves.append(('swap_pos', neighbor))
-            # swap colors with any neighbor whose color is different, including diagonal
-            #moves.append(('swap_color', neighbor))
         return moves
     def makeRandomMove(self):
         moves = self.moves()
@@ -106,39 +97,21 @@ class Board():
         neighborVal = self.getVal(neighborPos)
         agentVal = self.getVal(self.pos)
         if actionName  == 'spread_color':
-            self.setVal(neighborPos, agentVal.lower())
+            self.setVal(neighborPos, agentVal)
         elif actionName  == 'swap_pos':
             self.setVal(neighborPos, agentVal)
             self.setVal(self.pos, neighborVal)
-        elif actionName  == 'swap_color':
-            self.setVal(neighborPos, agentVal.lower())
-            self.setVal(self.pos, neighborVal.upper())
-        # get index of pos in grid with uppercase letter
-        for y, row in enumerate(self.grid):
-            for x, cell in enumerate(row):
-                if cell.isupper():
-                    self.pos = intVector(x, y)
-                    break
-        self.state = {'grid': self.grid, 'pos': self.pos}
-    def update(self):
-        pass
-
-    def mouse_pressed(self):
-        x = int(mouse_x // self.cell_size)
-        y = int(mouse_y // self.cell_size)
-        self.grid[y][x] = 255
+            self.pos = neighborPos
+    def solve_random(self):
+        while self.grid != self.goal:
+            self.makeRandomMove()
+            self.print()
+            print('-'*self.width)
+            #wait one second
+            time.sleep(1)
+        print('Goal!')
 
 if __name__ == '__main__':
-    board = Board(5, 5, 20)
+    board = Board(2, 2, 100)
     board.print()
-    def setup():
-        size(board.width * board.cell_size, board.height * board.cell_size)
-    def draw():
-        background(255)
-        board.display()
-        board.print()
-        board.makeRandomMove()
-    def mouse_pressed():
-        board.mouse_pressed()
-
-    run(frame_rate=1)
+    board.solve_random()
