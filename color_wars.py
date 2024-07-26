@@ -42,7 +42,9 @@ class Board():
         
         for row in printGrid:
             print(''.join(row))
-    def neighbors(self):
+    def neighbors(self, pos = False):
+        if not pos:
+            pos = self.pos
         x, y = self.pos.x, self.pos.y
         neighbors = []
         # horizontal  vertical neighbors
@@ -66,28 +68,39 @@ class Board():
         return neighbors
     def is_diagonal(self, pos1, pos2):
         return (abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y)) == 2
-    def getVal(self, vec):
+    def getVal(self, vec, grid = False):
+        if not grid:
+            grid = self.grid
         x, y = vec.x, vec.y
-        return self.grid[y][x]
+        return grid[y][x]
     def setVal(self, vec, val, inplace = True):
         x, y = vec.x, vec.y
         if inplace:
             self.grid[y][x] = val
         else: 
             return setVal(vec, val, self.grid)
-    def moves(self):
+    def moves(self, pos = False, grid = False):
+        if not pos:
+            pos = self.pos
+        if not grid:
+            grid = self.grid
         moves = []
-        for neighbor in self.neighbors():
+        for neighbor in self.neighbors(pos):
             # spread colors to  neighbors to the diagonal
-            if self.is_diagonal(self.pos, neighbor):
+            if self.is_diagonal(pos, neighbor):
                 # if color is not already the same  
-                if self.getVal(neighbor) != self.getVal(self.pos):
-                    moves.append(('spread_color', neighbor))
+                if self.getVal(neighbor, grid) != self.getVal(pos, grid):
+                    state = copy.deepcopy(grid)
+                    state = setVal(neighbor, self.getVal(pos, grid), state)
+                    moves.append({'name': 'spread_color', 'newpos': pos, 'state': state})
             # swap places to the top, bottom, left, or right 
             else:
-                neighborVal = self.getVal(neighbor)
-                agentVal = self.getVal(self.pos)
-                moves.append(('swap_pos', neighbor))
+                neighborVal = self.getVal(neighbor, grid)
+                agentVal = self.getVal(pos, grid)
+                state = copy.deepcopy(grid)
+                state = setVal(neighbor, agentVal, state)
+                state = setVal(pos, neighborVal, state)
+                moves.append({'name': 'swap_pos', 'newpos': neighbor, 'state': state})
         return moves
     def makeRandomMove(self):
         moves = self.moves()
@@ -110,8 +123,36 @@ class Board():
             #wait one second
             time.sleep(1)
         print('Goal!')
-
+    def set_frontier(self, frontier_type):
+        if frontier_type == 'stack':
+            self.frontier = StackFrontier()
+        elif frontier_type == 'queue':
+            self.frontier = QueueFrontier()
+        self.frontier.add(Node(self.grid, None, None))
+        self.explored = set()
+    def solve_bfs(self):
+        self.set_frontier('queue')
+        self.solve()
+    def solve_dfs(self):
+        self.set_frontier('stack')
+        self.solve()
+    def solve(self):
+        while True:
+            if self.frontier.empty():
+                return None
+            node = self.frontier.remove()
+            print(node.state)
+            if node.state == self.goal:
+                print('Goal!')
+                return
+            self.explored.add(str(node.state))
+            for move in self.moves(node.action, node.state):
+                grid = move['state']
+                pos = move['newpos']
+                if not self.frontier.contains_state(grid)  and str(grid) not in self.explored:
+                    child = Node(state=grid, parent=node, action=pos)
+                    self.frontier.add(child)
 if __name__ == '__main__':
     board = Board(2, 2, 100)
     board.print()
-    board.solve_random()
+    board.solve_dfs()
