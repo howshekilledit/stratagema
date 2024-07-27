@@ -18,7 +18,6 @@ class BoardP5(Board): #extends color wars board for visualization in p5
         colors = {'r': Color(255, 0, 0), 'g': Color(0, 255, 0), 'b': Color(0, 0, 255), 'c': Color(0, 255, 255), 'm': Color(255, 0, 255), 'y': Color(255, 255, 0), 'w': Color(255), 'k': Color(0)}
         x_off, y_off = origin.x, origin.y
         # if grid is string
-        print(grid)
         if isinstance(grid, str):
             grid = [[cell for cell in row] for row in grid.split('\n')]
             
@@ -48,7 +47,6 @@ if __name__ == '__main__':
     def draw():
         for y, tier in enumerate(tree):
             for x, grid in enumerate(tier):
-                print(grid)
                 board.display(grid, 10, Vector(x * 20, y * 20))
     #def setup():
     #    size(board.width * board.cell_size, board.height * board.cell_size)
