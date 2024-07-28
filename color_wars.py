@@ -51,15 +51,6 @@ class Board():
             pos = self.pos
         x, y = pos.x, pos.y
         neighbors = []
-        # horizontal  vertical neighbors
-        if x > 0:
-            neighbors.append(intVector(x-1, y))
-        if x < self.width - 1:
-            neighbors.append(intVector(x+1, y))
-        if y > 0:
-            neighbors.append(intVector(x, y-1))
-        if y < self.height - 1:
-            neighbors.append(intVector(x, y+1))
         # diagonal neighbors
         if x > 0 and y > 0:
             neighbors.append(intVector(x-1, y-1))
@@ -69,6 +60,15 @@ class Board():
             neighbors.append(intVector(x-1, y+1))
         if x < self.width - 1 and y < self.height - 1:
             neighbors.append(intVector(x+1, y+1))
+        # horizontal  vertical neighbors
+        if x > 0:
+            neighbors.append(intVector(x-1, y))
+        if x < self.width - 1:
+            neighbors.append(intVector(x+1, y))
+        if y > 0:
+            neighbors.append(intVector(x, y-1))
+        if y < self.height - 1:
+            neighbors.append(intVector(x, y+1))
         return neighbors
     def is_diagonal(self, pos1, pos2):
         return (abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y)) == 2
@@ -111,25 +111,63 @@ class Board():
         move = random.choice(moves)
         self.grid = move['state']
         self.pos = move['new_pos']
-    def decisionTree(self, parent = None, moves = False, tree = []):
-        if not moves:
-            moves = self.moves()
-            node = Node(state=self.grid, parent=parent, action=self.pos)
-            tree.append([self.grid])
-        grids = [move['state'] for move in moves]
-        # print grids out side by side by joining self.print() output for each
-        printGrids = [self.print(move['state'], move['new_pos'], False) for move in moves]
-        tree.append(printGrids)
-        printGrids = ' '.join([f"{grid[:2]}" for grid in printGrids])+ '\n' + ' '.join([f"{grid[-2:]}" for grid in printGrids])
+    def decisionTree(self, parent = None, tree = []):
+        if parent is None: # if moves haven't been passed, it's the first call
+            parent = Node(state=self.grid, parent=parent, action=self.pos) # create a node for the current position
+            tree.append(parent)
+            self.explored = set() # set of explored grid
+            self.explored.add(self.print(parent.state, parent.action, False)) # add the print output of the grid to the explored set
+        moves = self.moves(parent.action, parent.state)
+        grids = [move['state'] for move in moves] # get the grids for each move
+        # print grids out side by side by joining self.print() output for each 
+        printGrids = [self.print(move['state'], move['new_pos'], False) for move in moves] # get the print output for each move
+        printGrids = ' '.join([f"{grid[:2]}" for grid in printGrids])+ '\n' + ' '.join([f"{grid[-2:]}" for grid in printGrids]) # join the print output for each move into a cluster
         
-        print(printGrids)
-        for move in moves:
-            grid = move['state']
-            pos = move['new_pos']
-            #tree.append(Node(state=grid, parent=parent, action=pos))
-            if self.goal != grid and len(tree) < 10:
-                self.decisionTree(grid, self.moves(pos, grid), tree)
+        #print(printGrids) # print the cluster of moves
+        for move in moves: # for each move
+            grid = move['state'] # get the grid
+            pos = move['new_pos']  # get the new position
+            node = Node(state=grid, parent=parent, action=pos) # create a node for the move
+            tree.append(node) # add the node to the tree
+            pGrid = self.print(grid, pos, False) # get the print output for the grid
+            if self.goal != grid: 
+                if pGrid not in self.explored: # if the grid is not the goal and the print output is not in the explored set
+                    self.explored.add(pGrid) # add the print output to the explored set
+                    self.decisionTree(node,  tree) # recursively call the decision tree with the new grid and moves
+            else:
+                print('return')
+                return tree
+        print('RETURN')
         return tree
+    def group_tree(self, tree):
+        distances = []
+        for node in tree:
+            # get distance from root node
+            distance = 0
+            while node.parent is not None:
+                distance += 1
+                node = node.parent
+            distances.append(distance)
+        # group nodes by distance
+        grouped = {}
+        for i, distance in enumerate(distances):
+            if distance not in grouped:
+                grouped[distance] = []
+            grouped[distance].append(tree[i])
+        # within each group, group by parent
+        for distance in grouped:
+            group = grouped[distance]
+            parents = set([node.parent for node in group])
+            grouped_group  = {}
+            for parent in parents:
+                if parent is None:
+                    parent_name = None
+                else:
+                    parent_name = self.print(parent.state, parent.action, False)
+                grouped_group[parent_name] = [node for node in group if node.parent == parent]
+            grouped[distance] = grouped_group
+        
+        return grouped
     def solve_random(self):
         while self.grid != self.goal:
             self.makeRandomMove()
@@ -200,4 +238,5 @@ if __name__ == '__main__':
     board = Board(2, 2)
     board.print()
     print('-'*board.width)
-    board.solve_dfs()
+    board.solve_bfs()
+    #board.render_tree(board.decisionTree())

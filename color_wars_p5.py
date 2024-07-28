@@ -1,5 +1,6 @@
 from p5 import *
 from color_wars import *
+import random
 
 class BoardP5(Board): #extends color wars board for visualization in p5
     #add cell size argument to inherited __init__ method
@@ -9,6 +10,7 @@ class BoardP5(Board): #extends color wars board for visualization in p5
         self.pos = intVector(0, 0)
     # display the board in p5
     def display(self, grid = None, s = None, origin = Vector(0, 0)):
+        noStroke()
         pos = intVector(0, 0)
         if grid is None:
             grid = self.grid
@@ -31,23 +33,39 @@ class BoardP5(Board): #extends color wars board for visualization in p5
                 fill(colors[cell.lower()])
                 rect((x * s + x_off, y * s + y_off), s, s)
                 if pos.x == x and pos.y == y:
-                    stroke(0)
-                    rect((x * s + x_off, y * s + y_off), s, s)
+                    fill(0)
                     ellipse((x * s + s // 2 + x_off, y * s + s // 2 + y_off), s // 2, s // 2)
-                    noStroke()
 
 if __name__ == '__main__':
-    board = BoardP5(2, 2, 100)
+    board = BoardP5(2, 2, 10)
     board.print()
-    tree = board.decisionTree()
+    tree = board.group_tree(board.decisionTree())
     def setup():
         size(1200, 1200)
         background(255, 0, 0)
-        
     def draw():
-        for y, tier in enumerate(tree):
-            for x, grid in enumerate(tier):
-                board.display(grid, 10, Vector(x * 20, y * 20))
+        background(255)
+        bw = board.width * board.cell_size # board width
+        bh = board.height * board.cell_size # board height
+        cs = board.cell_size # cell size
+        for y, tier in tree.items(): # for each distance group
+            y = float(y) * 1.1
+            x = 0
+            pos_list = {}
+            for parent, group in tier.items(): #for each parent group
+                for node in group:
+                    grid = node.state
+                    grid = board.print(grid, node.action, console = False)
+                    pos_list['grid'] = Vector(x * bw, y * bh)
+                    board.display(grid, cs, Vector(x * bw, y * bh))
+                    x += 1.1
+                if parent is not None:
+                    board.display(parent, cs, Vector(x * bw, y * bh))
+                    # draw a thick black line around parent
+                    stroke(0)
+                    noFill()
+                    rect(x * bw, y * bh, bw, bh)
+                x += 2
     #def setup():
     #    size(board.width * board.cell_size, board.height * board.cell_size)
     #    board.display()
