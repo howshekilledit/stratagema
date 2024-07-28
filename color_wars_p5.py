@@ -52,31 +52,36 @@ if __name__ == '__main__':
         for y, tier in tree.items(): # for each distance group
             y = float(y) * 1.5
             tier_size = sum([len(group) for group in tier.values()]) + len(tier) -1 
-            x = 0.5*(width/bw) - (tier_size * 1.1) / 2
+            x_start = (bw - (tier_size * cs)) / 2
+            x = x_start
             for parent, group in tier.items(): #for each parent group
+                if parent is not None:
+                    x = max(((pos_list[parent].x-x_start)/bw), x) 
+                else:
+                    x = x_start
                 for node in group:
                     grid = node.state
                     goal = False
                     if grid == board.goal:
                         goal = True
                     grid = board.print(grid, node.action, console = False)
-                    px, py  = x * bw, y * bh
+                    px, py = x * bw, y * bh
                     pos_list[grid] = Vector(px, py)
+                    if parent is not None:
+                        ppos = pos_list[parent]
+                        # draw line to parent
+                        stroke(0)
+                        try:
+                            line((px + cs, py + cs), (ppos.x + cs, ppos.y + cs))
+                        except:
+                            print(pos_list)
                     board.display(grid, cs, Vector(px, py))
                     if goal:
-                        #outline in red
                         stroke(0, 0, 0)
                         strokeWeight(2)
                         noFill()
                         rect(px, py, bw, bh)
                     x += 1.1
-                    if parent is not None:
-                        # draw line to parent
-                        stroke(0)
-                        try:
-                            line((px + cs, py + cs), (pos_list[parent].x + cs, pos_list[parent].y + cs))
-                        except:
-                            print(pos_list)
                 x += 1
     #def setup():
     #    size(board.width * board.cell_size, board.height * board.cell_size)
