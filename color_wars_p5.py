@@ -52,11 +52,11 @@ if __name__ == '__main__':
         for y, tier in tree.items(): # for each distance group
             y = float(y) * 1.5
             tier_size = sum([len(group) for group in tier.values()]) + len(tier) -1 
-            x_start = (bw - (tier_size * cs)) / 2
+            x_start = width/bw/2 - tier_size/2
             x = x_start
             for parent, group in tier.items(): #for each parent group
                 if parent is not None:
-                    x = max(((pos_list[parent].x-x_start)/bw), x) 
+                    x = max(((pos_list[parent].x-x_start)/bw - len(group)/2), x) 
                 else:
                     x = x_start
                 for node in group:
