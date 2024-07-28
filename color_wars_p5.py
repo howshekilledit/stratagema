@@ -4,10 +4,9 @@ import random
 
 class BoardP5(Board): #extends color wars board for visualization in p5
     #add cell size argument to inherited __init__ method
-    def __init__(self, width, height, cell_size):
-        super().__init__(width, height)
+    def __init__(self, width, height, cell_size = 10, start = False):
+        super().__init__(width, height, start)
         self.cell_size = cell_size
-        self.pos = intVector(0, 0)
     # display the board in p5
     def display(self, grid = None, s = None, origin = Vector(0, 0)):
         noStroke()
@@ -37,9 +36,10 @@ class BoardP5(Board): #extends color wars board for visualization in p5
                     ellipse((x * s + s // 2 + x_off, y * s + s // 2 + y_off), s // 2, s // 2)
 
 if __name__ == '__main__':
-    board = BoardP5(2, 2, 10)
+    board = BoardP5(2, 2, 10)#, start = [['Y', 'y'], ['y', 'c']])
     board.print()
-    tree = board.group_tree(board.decisionTree())
+    board.decisionTree()
+    tree = board.group_tree()
     def setup():
         size(1200, 1200)
         background(255, 0, 0)
@@ -48,24 +48,36 @@ if __name__ == '__main__':
         bw = board.width * board.cell_size # board width
         bh = board.height * board.cell_size # board height
         cs = board.cell_size # cell size
+        pos_list = {}
         for y, tier in tree.items(): # for each distance group
-            y = float(y) * 1.1
-            x = 0
-            pos_list = {}
+            y = float(y) * 1.5
+            tier_size = sum([len(group) for group in tier.values()]) + len(tier) -1 
+            x = 0.5*(width/bw) - (tier_size * 1.1) / 2
             for parent, group in tier.items(): #for each parent group
                 for node in group:
                     grid = node.state
+                    goal = False
+                    if grid == board.goal:
+                        goal = True
                     grid = board.print(grid, node.action, console = False)
-                    pos_list['grid'] = Vector(x * bw, y * bh)
-                    board.display(grid, cs, Vector(x * bw, y * bh))
+                    px, py  = x * bw, y * bh
+                    pos_list[grid] = Vector(px, py)
+                    board.display(grid, cs, Vector(px, py))
+                    if goal:
+                        #outline in red
+                        stroke(0, 0, 0)
+                        strokeWeight(2)
+                        noFill()
+                        rect(px, py, bw, bh)
                     x += 1.1
-                if parent is not None:
-                    board.display(parent, cs, Vector(x * bw, y * bh))
-                    # draw a thick black line around parent
-                    stroke(0)
-                    noFill()
-                    rect(x * bw, y * bh, bw, bh)
-                x += 2
+                    if parent is not None:
+                        # draw line to parent
+                        stroke(0)
+                        try:
+                            line((px + cs, py + cs), (pos_list[parent].x + cs, pos_list[parent].y + cs))
+                        except:
+                            print(pos_list)
+                x += 1
     #def setup():
     #    size(board.width * board.cell_size, board.height * board.cell_size)
     #    board.display()

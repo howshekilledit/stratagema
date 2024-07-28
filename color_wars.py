@@ -24,7 +24,15 @@ class Board():
         self.height = height
         if not start:
             self.grid = [[random.choice(['c', 'm', 'y'])  for _ in range(width)] for _ in range(height)]
-        self.pos = intVector(random.randint(0, width-1), random.randint(0, height-1))
+            self.pos = intVector(random.randint(0, width-1), random.randint(0, height-1))
+        else:
+            self.grid = start
+            for y, row in enumerate(start):
+                for x, cell in enumerate(row):
+                    if cell.isupper():
+                        self.pos = intVector(x, y)
+                        self.char = cell.lower()
+                        self.grid[y][x] = cell.lower()
         self.char = self.getVal(self.pos)
         self.goal = [[self.char] * self.width] * self.height #goal set <- change this line to TODO
         self.count()
@@ -111,10 +119,11 @@ class Board():
         move = random.choice(moves)
         self.grid = move['state']
         self.pos = move['new_pos']
-    def decisionTree(self, parent = None, tree = []):
+    def decisionTree(self, parent = None):
         if parent is None: # if moves haven't been passed, it's the first call
+            self.tree = []
             parent = Node(state=self.grid, parent=parent, action=self.pos) # create a node for the current position
-            tree.append(parent)
+            self.tree.append(parent)
             self.explored = set() # set of explored grid
             self.explored.add(self.print(parent.state, parent.action, False)) # add the print output of the grid to the explored set
         moves = self.moves(parent.action, parent.state)
@@ -122,26 +131,19 @@ class Board():
         # print grids out side by side by joining self.print() output for each 
         printGrids = [self.print(move['state'], move['new_pos'], False) for move in moves] # get the print output for each move
         printGrids = ' '.join([f"{grid[:2]}" for grid in printGrids])+ '\n' + ' '.join([f"{grid[-2:]}" for grid in printGrids]) # join the print output for each move into a cluster
-        
-        #print(printGrids) # print the cluster of moves
         for move in moves: # for each move
             grid = move['state'] # get the grid
             pos = move['new_pos']  # get the new position
             node = Node(state=grid, parent=parent, action=pos) # create a node for the move
-            tree.append(node) # add the node to the tree
+            self.tree.append(node) # add the node to the tree
             pGrid = self.print(grid, pos, False) # get the print output for the grid
-            if self.goal != grid: 
-                if pGrid not in self.explored: # if the grid is not the goal and the print output is not in the explored set
-                    self.explored.add(pGrid) # add the print output to the explored set
-                    self.decisionTree(node,  tree) # recursively call the decision tree with the new grid and moves
-            else:
-                print('return')
-                return tree
-        print('RETURN')
-        return tree
-    def group_tree(self, tree):
+            if pGrid not in self.explored: # if the grid is not the goal and the print output is not in the explored set          
+                self.explored.add(pGrid) # add the print output to the explored set
+                if grid != self.goal:
+                    self.decisionTree(node) # recursively call the decision tree with the new grid and moves
+    def group_tree(self):
         distances = []
-        for node in tree:
+        for node in self.tree:
             # get distance from root node
             distance = 0
             while node.parent is not None:
@@ -153,7 +155,7 @@ class Board():
         for i, distance in enumerate(distances):
             if distance not in grouped:
                 grouped[distance] = []
-            grouped[distance].append(tree[i])
+            grouped[distance].append(self.tree[i])
         # within each group, group by parent
         for distance in grouped:
             group = grouped[distance]
@@ -235,7 +237,7 @@ class Board():
                     child = Node(state=grid, parent=node, action=pos)
                     self.frontier.add(child)
 if __name__ == '__main__':
-    board = Board(2, 2)
+    board = Board(2, 2, start = [['B', 'b'], ['y', 'b']])
     board.print()
     print('-'*board.width)
     board.solve_bfs()
