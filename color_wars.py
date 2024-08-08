@@ -120,7 +120,7 @@ class Board():
         self.grid = move['state']
         self.pos = move['new_pos']
     def decisionTree(self, parent = None):
-        if parent is None: # if moves haven't been passed, it's the first call
+        if parent is None: # if parent is none, it's the first call
             self.tree = []
             parent = Node(state=self.grid, parent=parent, action=self.pos) # create a node for the current position
             self.tree.append(parent)
