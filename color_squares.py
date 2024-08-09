@@ -19,11 +19,11 @@ def setVal(vec, val, grid): # spec is a boolean that indicates if the update is 
     return grid
 
 class Board():
-    def __init__(self, width, height, start = False):
+    def __init__(self, width, height, start = False, branchDup = True):
         self.width = width
         self.height = height
         if not start:
-            self.grid = [[random.choice(['c', 'm', 'y'])  for _ in range(width)] for _ in range(height)]
+            self.grid = [[random.choice(['c', 'm'])  for _ in range(width)] for _ in range(height)]
             self.pos = intVector(random.randint(0, width-1), random.randint(0, height-1))
         else:
             self.grid = start
@@ -36,6 +36,10 @@ class Board():
         self.char = self.getVal(self.pos)
         self.goal = [[self.char] * self.width] * self.height #goal set <- change this line to TODO
         self.count()
+        # enable or disable duplicate branches in decision tree (if enabled, all roads lead to goal)
+        self.branchDup = branchDup
+        if self.branchDup:
+            self.branches = []
     def count(self):
         count = 0
         val = self.getVal(self.pos).lower()
@@ -119,18 +123,17 @@ class Board():
         move = random.choice(moves)
         self.grid = move['state']
         self.pos = move['new_pos']
+    
+    # create a decision tree
     def decisionTree(self, parent = None):
         if parent is None: # if parent is none, it's the first call
-            self.tree = []
+            self.tree = [] # create an empty tree
             parent = Node(state=self.grid, parent=parent, action=self.pos) # create a node for the current position
-            self.tree.append(parent)
+            self.tree.append(parent) # add the parent node to the tree
             self.explored = set() # set of explored grid
             self.explored.add(self.print(parent.state, parent.action, False)) # add the print output of the grid to the explored set
-        moves = self.moves(parent.action, parent.state)
+        moves = self.moves(parent.action, parent.state) # get the possible moves for the current position
         grids = [move['state'] for move in moves] # get the grids for each move
-        # print grids out side by side by joining self.print() output for each 
-        printGrids = [self.print(move['state'], move['new_pos'], False) for move in moves] # get the print output for each move
-        printGrids = ' '.join([f"{grid[:2]}" for grid in printGrids])+ '\n' + ' '.join([f"{grid[-2:]}" for grid in printGrids]) # join the print output for each move into a cluster
         for move in moves: # for each move
             grid = move['state'] # get the grid
             pos = move['new_pos']  # get the new position
@@ -141,35 +144,55 @@ class Board():
                 self.explored.add(pGrid) # add the print output to the explored set
                 if grid != self.goal:
                     self.decisionTree(node) # recursively call the decision tree with the new grid and moves
-    def group_tree(self):
-        distances = []
-        for node in self.tree:
-            # get distance from root node
-            distance = 0
-            while node.parent is not None:
-                distance += 1
-                node = node.parent
-            distances.append(distance)
-        # group nodes by distance
-        grouped = {}
-        for i, distance in enumerate(distances):
-            if distance not in grouped:
-                grouped[distance] = []
-            grouped[distance].append(self.tree[i])
-        # within each group, group by parent
-        for distance in grouped:
-            group = grouped[distance]
-            parents = set([node.parent for node in group])
-            grouped_group  = {}
-            for parent in parents:
-                if parent is None:
-                    parent_name = None
-                else:
-                    parent_name = self.print(parent.state, parent.action, False)
-                grouped_group[parent_name] = [node for node in group if node.parent == parent]
-            grouped[distance] = grouped_group
-        
-        return grouped
+                elif self.branchDup: # if goal reached, record path
+                    branch = [node]
+                    while node.parent is not None:
+                        node = node.parent
+                        branch.append(node)
+                    branch.reverse()
+                    self.branches.append(branch)
+
+
+    
+# group the tree by distance from the root node
+def group_tree(self):
+    distances = []
+    for node in self.tree:
+        # get distance from root node
+        distance = 0
+        while node.parent is not None:
+            distance += 1
+            node = node.parent
+        distances.append(distance)
+    # group nodes by distance
+    grouped = {}
+    for i, distance in enumerate(distances):
+        if distance not in grouped:
+            grouped[distance] = set()
+        grouped[distance].add(self.tree[i])
+    # within each group, group by parent
+    for distance in grouped:
+        group = grouped[distance]
+        parents = set([node.parent for node in group])
+        grouped_group  = {}
+        for parent in parents:
+            if parent is None:
+                parent_name = None
+            else:
+                parent_name = self.print(parent.state, parent.action, False)
+            # Create a set to store the states of the nodes in the subgroup
+            subgroup_states = set()
+            for node in group:
+                if node.parent == parent:
+                    # Check if the state of the node is already in the subgroup
+                    if node.state not in subgroup_states:
+                        # If it's not, add the state to the set and the node to the subgroup
+                        subgroup_states.add(node.state)
+                        if parent_name not in grouped_group:
+                            grouped_group[parent_name] = set()
+                        grouped_group[parent_name].add(node)
+        grouped[distance] = grouped_group
+    return grouped
     def solve_random(self):
         while self.grid != self.goal:
             self.makeRandomMove()

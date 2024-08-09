@@ -1,1 +1,3 @@
-p5
+numpy
+opencv-python
+#p5
