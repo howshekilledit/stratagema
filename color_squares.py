@@ -154,45 +154,69 @@ class Board():
 
 
     
-# group the tree by distance from the root node
-def group_tree(self):
-    distances = []
-    for node in self.tree:
-        # get distance from root node
-        distance = 0
-        while node.parent is not None:
-            distance += 1
-            node = node.parent
-        distances.append(distance)
-    # group nodes by distance
-    grouped = {}
-    for i, distance in enumerate(distances):
-        if distance not in grouped:
-            grouped[distance] = set()
-        grouped[distance].add(self.tree[i])
-    # within each group, group by parent
-    for distance in grouped:
-        group = grouped[distance]
-        parents = set([node.parent for node in group])
-        grouped_group  = {}
-        for parent in parents:
-            if parent is None:
-                parent_name = None
-            else:
-                parent_name = self.print(parent.state, parent.action, False)
-            # Create a set to store the states of the nodes in the subgroup
-            subgroup_states = set()
-            for node in group:
-                if node.parent == parent:
-                    # Check if the state of the node is already in the subgroup
-                    if node.state not in subgroup_states:
-                        # If it's not, add the state to the set and the node to the subgroup
-                        subgroup_states.add(node.state)
-                        if parent_name not in grouped_group:
-                            grouped_group[parent_name] = set()
-                        grouped_group[parent_name].add(node)
-        grouped[distance] = grouped_group
-    return grouped
+    # add duplicate branches to the tree
+    def duplicate_branches(self):
+        # for each node in the decision tree that is not anyone's parent and is not the goal
+        parents = set([node.parent for node in self.tree])
+        for node in self.tree:
+            if node not in parents and node.state != self.goal:
+                # find branch that contains node with same state and action
+                for branch in self.branches:
+                    pgrids = [self.print(node.state, node.action, False) for node in branch]
+                    p = self.print(node.state, node.action, False)
+                    if p in pgrids:
+                        parent = node
+                        parents.add(parent)
+                        # get index
+                        index = pgrids.index(p)
+                        for n in branch[index + 1:]:
+                            dup_node = Node(state=n.state, parent=parent, action=n.action)
+                            self.tree.append(dup_node)
+                            parent = dup_node
+                        break
+
+    # group the tree by distance from the root node
+    def group_tree(self):
+        distances = []
+        for node in self.tree:
+            # get distance from root node
+            distance = 0
+            while node.parent is not None:
+                distance += 1
+                node = node.parent
+            distances.append(distance)
+        # group nodes by distance
+        grouped = {}
+        for i, distance in enumerate(distances):
+            if distance not in grouped:
+                grouped[distance] = set()
+            grouped[distance].add(self.tree[i])
+        # within each group, group by parent
+        for distance in grouped:
+            group = grouped[distance]
+            parents = set([node.parent for node in group])
+            grouped_group  = {}
+            for parent in parents:
+                if parent is None:
+                    parent_name = None
+                else:
+                    parent_name = self.print(parent.state, parent.action, False)
+                # Create a set to store the states of the nodes in the subgroup
+                subgroup_states = set()
+                for node in group:
+                    if node.parent == parent:
+                        # Check if the state of the node is already in the subgroup
+                        p = self.print(node.state, node.action, False)
+                        if p not in subgroup_states:
+                            # If it's not, add the state to the set and the node to the subgroup
+                            subgroup_states.add(p)
+                            if parent_name not in grouped_group:
+                                grouped_group[parent_name] = set()
+                            grouped_group[parent_name].add(node)
+                if len(grouped_group[parent_name]) > 3:
+                    print(grouped_group[parent])
+            grouped[distance] = grouped_group
+        return grouped
     def solve_random(self):
         while self.grid != self.goal:
             self.makeRandomMove()
