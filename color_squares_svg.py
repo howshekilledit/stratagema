@@ -48,13 +48,14 @@ class BoardSVG(Board):
             tier_size = sum([len(group) for group in tier.values()]) + len(tier) - 1
             x_start = width/bw/2 - tier_size/2
             x = x_start
-
             for parent, group in tier.items():  # for each parent group
-                if parent is not None:
-                    x = x  # Adjust x positioning if needed
-                else:
-                    x = x_start
-
+                tier_xs = []
+                if parent in pos_list:
+                    #print(pos_list[parent])
+                    if len(tier_xs) > 0:
+                        x = max(max(tier_xs) + 1, pos_list[parent][0]/bw - 1)
+                    else:
+                        x = pos_list[parent][0]/bw - 1
                 for node in group:
                     grid = node.state
                     goal = False
@@ -63,7 +64,6 @@ class BoardSVG(Board):
                     grid = self.print(grid, node.action, console=False)
                     px, py = int(x * bw), int(y * bh)
                     pos_list[grid] = (px, py)
-                    
                     if parent is not None:
                         ppos = pos_list[parent]
                         # Draw a line to the parent
@@ -71,7 +71,7 @@ class BoardSVG(Board):
 
                     # Display the grid
                     self.draw(dwg, grid, cs, (px, py))
-
+                    tier_xs.append(x)
                     x += 1.1
                 x += 1
 
