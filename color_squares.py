@@ -208,9 +208,9 @@ class Board():
                         # get index
                         index = pgrids.index(p)
                         for n in branch[index + 1:]:
+                            
                             dup_node = Node(state=n.state, parent=parent, action=n.action)
-                            if dup_node not in self.tree:
-                                self.tree.append(dup_node)
+                            self.tree.append(dup_node)
                             parent = dup_node
                         break
     '''
