@@ -20,6 +20,7 @@ def setVal(vec, val, grid): # spec is a boolean that indicates if the update is 
 
 class Board():
     def __init__(self, width, height, start = False, branchDup = True):
+        print('Creating board')
         self.width = width
         self.height = height
         if not start:
@@ -151,6 +152,43 @@ class Board():
                         branch.append(node)
                     branch.reverse()
                     self.branches.append(branch)
+    def group_tree(self):
+        print('Grouping tree')
+        distances = []
+        for node in self.tree:
+            # get distance from root node
+            distance = 0
+            while node.parent is not None:
+                distance += 1
+                node = node.parent
+            distances.append(distance)
+        # group nodes by distance
+        grouped = {}
+        for i, distance in enumerate(distances):
+            if distance not in grouped:
+                grouped[distance] = []
+            grouped[distance].append(self.tree[i])
+        # within each group, group by parent
+        for distance in grouped:
+            group = grouped[distance]
+            parents = set([node.parent for node in group])
+            grouped_group  = {}
+            for parent in parents:
+                states = set()
+                if parent is None:
+                    parent_name = None
+                else:
+                    parent_name = self.print(parent.state, parent.action, False)
+                grouped_group[parent_name] = set()
+                for node in group:
+                    if node.parent == parent:
+                        p = self.print(node.state, node.action, False).lower()
+                        if p not in states:
+                            states.add(p)
+                            grouped_group[parent_name].add(node)
+            grouped[distance] = grouped_group
+        print(grouped)
+        return grouped
 
 
     
@@ -171,10 +209,11 @@ class Board():
                         index = pgrids.index(p)
                         for n in branch[index + 1:]:
                             dup_node = Node(state=n.state, parent=parent, action=n.action)
-                            self.tree.append(dup_node)
+                            if dup_node not in self.tree:
+                                self.tree.append(dup_node)
                             parent = dup_node
                         break
-
+    '''
     # group the tree by distance from the root node
     def group_tree(self):
         distances = []
@@ -215,6 +254,7 @@ class Board():
                             grouped_group[parent_name].add(node)
             grouped[distance] = grouped_group
         return grouped
+    '''
     def solve_random(self):
         while self.grid != self.goal:
             self.makeRandomMove()

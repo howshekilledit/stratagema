@@ -83,6 +83,7 @@ class BoardCV(Board):
 
         # Save the image
         cv2.imwrite(file, image)
+        
 if __name__ == '__main__':
     board = BoardCV(2, 2, 10)#, start = [['Y', 'y'], ['y', 'c']])
     board.print()
