@@ -213,8 +213,6 @@ class Board():
                             if parent_name not in grouped_group:
                                 grouped_group[parent_name] = set()
                             grouped_group[parent_name].add(node)
-                if len(grouped_group[parent_name]) > 3:
-                    print(grouped_group[parent])
             grouped[distance] = grouped_group
         return grouped
     def solve_random(self):
