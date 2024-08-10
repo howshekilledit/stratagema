@@ -142,7 +142,10 @@ class Board():
             node = Node(state=grid, parent=parent, action=pos) # create a node for the move
             self.tree.append(node) # add the node to the tree
             pGrid = self.print(grid, pos, False) # get the print output for the grid
-            if pGrid not in self.won: # if the grid is not the goal and the print output is not in the explored set          
+            if pGrid not in self.explored: # if the grid is not the goal and the print output is not in the explored set          
+                #print recursion depth
+                print('Depth:', len(self.tree))
+                print(pGrid, self.won)
                 self.explored.add(pGrid) # add the print output to the explored set
                 if grid != self.goal:
                     self.decisionTree(node) # recursively call the decision tree with the new grid and moves
@@ -151,7 +154,9 @@ class Board():
                     while node.parent is not None:
                         node = node.parent
                         branch.append(node)
-                    self.won.add(pGrid)
+                        p = self.print(node.state, node.action, False)
+                        print(p)
+                        self.won.add(p)
                     branch.reverse()
                     self.branches.append(branch)
     def goal_tree(self): # all roads lead to goal

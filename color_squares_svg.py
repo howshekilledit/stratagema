@@ -50,12 +50,11 @@ class BoardSVG(Board):
             x = x_start
             for parent, group in tier.items():  # for each parent group
                 tier_xs = []
-#                if parent in pos_list:
-#                    #print(pos_list[parent])
-#                    if len(tier_xs) > 0:
-#                        x = max(max(tier_xs) + 1, pos_list[parent][0]/bw - 1)
-#                    else:
-#                        x = pos_list[parent][0]/bw - 1
+                if parent in pos_list:
+                    if len(tier_xs) > 0:
+                         x = max(max(tier_xs) + 1, pos_list[parent][0]/bw - 1)
+                    else:
+                         x = pos_list[parent][0]/bw - 1
                 for node in group:
                     grid = node.state
                     goal = False
