@@ -24,6 +24,7 @@ class Board3D(Board):
                 for x, cell in enumerate(row):
                     if cell.isupper():
                         pos = (x, y)
+
         if s is None:
             s = self.cell_size
         colors = {'r': color.red, 'g': color.green, 'b': color.blue, 'c': color.cyan, 'm': color.magenta, 'y': color.yellow, 'w': color.white, 'k': color.black}
@@ -63,22 +64,30 @@ if __name__ == '__main__':
     # botton half, explored nodes
 #    explored = box(pos=vector(0.5, -1, 0), size=vector(3, 1, 1), color=color.white)
 #    text(pos=vector(0.5, -1, 0), text='explored', height=0.5, color=color.black)
+    frontier = []
     while not b.solution:
         rate(10)
         cycle_len = 70 # frames per cycle
         cycle_pos = f  % cycle_len # position in cycle
         if cycle_pos == 0: # start of cycle
+            # get position for next addition to frontier 
+            frontier_pos.x = len(b.frontier.frontier) * 4
             # remove node
             node = b.solve_step()
             ref = b.print(node.state, node.action, False)
             node_block = b.blocks[ref]
             # copy node block pos
-            diff = frontier_pos - current_pos
-            frontier_pos.x = len(b.frontier.frontier) * 4
+            diff = node_block[0].pos - current_pos
         elif cycle_pos < 20:
             # move current node to current box
             for shape in b.blocks[ref]:
                 shape.pos -= diff / 20
+            # move all frontier nodes up one
+            for p in b.blocks:
+                if b.blocks[p][0].pos.y > 0 and b.blocks[p][0].pos.x > 0:
+                    for shape in b.blocks[p]:
+                        shape.pos.x -= 3/20
+            
         # draw current node expansion in current section 
         elif cycle_pos == 20:
             # for each node in expanded node
