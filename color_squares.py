@@ -130,8 +130,10 @@ class Board():
             self.tree = [] # create an empty tree
             parent = Node(state=self.grid, parent=parent, action=self.pos) # create a node for the current position
             self.tree.append(parent) # add the parent node to the tree
+            p = self.print(parent.state, parent.action, False) # get the print output for the grid
             self.explored = set() # set of explored grid
-            self.explored.add(self.print(parent.state, parent.action, False)) # add the print output of the grid to the explored set
+            self.won = set() # set of grids that have reached the goal
+            self.explored.add(p) # add the print output of the grid to the explored set
         moves = self.moves(parent.action, parent.state) # get the possible moves for the current position
         grids = [move['state'] for move in moves] # get the grids for each move
         for move in moves: # for each move
@@ -140,7 +142,7 @@ class Board():
             node = Node(state=grid, parent=parent, action=pos) # create a node for the move
             self.tree.append(node) # add the node to the tree
             pGrid = self.print(grid, pos, False) # get the print output for the grid
-            if pGrid not in self.explored: # if the grid is not the goal and the print output is not in the explored set          
+            if pGrid not in self.won: # if the grid is not the goal and the print output is not in the explored set          
                 self.explored.add(pGrid) # add the print output to the explored set
                 if grid != self.goal:
                     self.decisionTree(node) # recursively call the decision tree with the new grid and moves
@@ -149,6 +151,7 @@ class Board():
                     while node.parent is not None:
                         node = node.parent
                         branch.append(node)
+                    self.won.add(pGrid)
                     branch.reverse()
                     self.branches.append(branch)
     def goal_tree(self): # all roads lead to goal

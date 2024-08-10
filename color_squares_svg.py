@@ -80,7 +80,9 @@ class BoardSVG(Board):
 
 if __name__ == '__main__':
     import sys
-    print(sys.getrecursionlimit())
+    lmt = sys.getrecursionlimit()
+    print(lmt)
+    sys.setrecursionlimit(1000000)
     board = BoardSVG(2, 2, 10)  # Initialize the board
     board.print()
     board.decisionTree()
@@ -89,4 +91,5 @@ if __name__ == '__main__':
     board.render_tree('dup_states_tree.svg')
     board.goal_tree()
     board.render_tree('limit_tree.svg')
+    sys.setrecursionlimit(lmt)
 
