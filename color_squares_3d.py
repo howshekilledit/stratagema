@@ -31,7 +31,7 @@ class Board3D(Board):
         shapes = []
         for y, row in enumerate(grid):
             for x, cell in enumerate(row):
-                b = box(pos=vector(x*s+x_off, y*s+y_off, 0), size=vector(s, s, s), color=colors[cell.lower()])
+                b = box(pos=vector(x*s+x_off, y*s+y_off, 1), size=vector(s, s, s), color=colors[cell.lower()])
                 shapes.append(b)
                # if pos == (x, y):
                #     # cut hole in b
@@ -57,43 +57,52 @@ if __name__ == '__main__':
     text(pos=vector(-9, 9, 1), text='current', height=0.5, color=color.black)
     # top right corner <- white box labeled "frontier"
     frontier = box(pos=vector(10, 10, 0), size=vector(16, 8, 1), color=color.white)
-    frontier_pos = vector(10, 10, 2) # position for next node in frontier
+    frontier_pos = vector(1, 10, 2) # position for next node in frontier
     text(pos=vector(9, 9, 1), text='frontier', height=0.5, color=color.black)
-    b.set_frontier("queue", (10, 10))
+    b.set_frontier("queue", (frontier_pos.x, frontier_pos.y))
     # botton half, explored nodes
 #    explored = box(pos=vector(0.5, -1, 0), size=vector(3, 1, 1), color=color.white)
 #    text(pos=vector(0.5, -1, 0), text='explored', height=0.5, color=color.black)
     while not b.solution:
         rate(10)
-        cycle_pos = f % 60 # frames per cycle
+        cycle_len = 70 # frames per cycle
+        cycle_pos = f  % cycle_len # position in cycle
         if cycle_pos == 0: # start of cycle
             # remove node
             node = b.solve_step()
             ref = b.print(node.state, node.action, False)
-            diff = b.blocks[ref][0].pos - current_pos
-        if cycle_pos < 20:
-            # move block to current
+            node_block = b.blocks[ref]
+            # copy node block pos
+            diff = frontier_pos - current_pos
+            frontier_pos.x = len(b.frontier.frontier) * 4
+        elif cycle_pos < 20:
+            # move current node to current box
             for shape in b.blocks[ref]:
                 shape.pos -= diff / 20
+        # draw current node expansion in current section 
         elif cycle_pos == 20:
-           for i, n in enumerate(b.expanded):
+            # for each node in expanded node
+            for i, n in enumerate(b.expanded):
                 p = b.print(n.state, n.action, False)
-                b.blocks[p] = b.draw(grid = p, origin = (-10 + 3 * i, 7))
-        elif cycle_pos < 40:
+                b.blocks[p] = b.draw(grid = p, origin = (current_pos.x + 3*i, current_pos.y - 3))
+                if i == 0:
+                    f_diff = frontier_pos - b.blocks[p][0].pos
+        # pause after expanding node
+        # then move node expansion blocks from current to frontier
+        elif cycle_pos > 30 and cycle_pos < 50:
             # move blocks to frontier
             for i, n in enumerate(b.expanded):
                 p = b.print(n.state, n.action, False)
                 if b.blocks[p][0].pos.y > 0: # if not in explored
                     for shape in b.blocks[p]:
-                        shape.pos.z = 1
-                        shape.pos.x += 1
-        elif cycle_pos < 60:
+                        shape.pos += f_diff / 20
+        elif cycle_pos >= 50 and cycle_pos < 70:
             # move current node to explored
-            for shape in b.blocks[ref]:
-                shape.pos.z = 1
-                shape.pos.y -= 1
-           
-            # # draw node below board
-           # #b.draw(grid = b.print(node.state, node.action, False), origin = (-10, y))
-           # #b.drawFrontier()
+           for shape in node_block:
+               shape.pos.z = 1
+               shape.pos.y -= 1
+        #   
+        #    # # draw node below board
+        #   # #b.draw(grid = b.print(node.state, node.action, False), origin = (-10, y))
+        #   # #b.drawFrontier()
         f += 1
