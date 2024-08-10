@@ -79,11 +79,14 @@ class BoardSVG(Board):
         dwg.save()
 
 if __name__ == '__main__':
+    import sys
+    print(sys.getrecursionlimit())
     board = BoardSVG(2, 2, 10)  # Initialize the board
     board.print()
     board.decisionTree()
+    board.render_tree('all_paths_except_dup_states.svg')
+    board.duplicate_branches()
+    board.render_tree('dup_states_tree.svg')
     board.goal_tree()
-    board.render_tree('limit_tree_centered.svg')
-    #board.duplicate_branches()
-    #board.render_tree('after_tree.svg')
+    board.render_tree('limit_tree.svg')
 
