@@ -39,8 +39,6 @@ class Board():
         self.count()
         # enable or disable duplicate branches in decision tree (if enabled, all roads lead to goal)
         self.branchDup = branchDup
-        if self.branchDup:
-            self.branches = []
     def count(self):
         count = 0
         val = self.getVal(self.pos).lower()
@@ -104,20 +102,20 @@ class Board():
         moves = []
         for neighbor in self.neighbors(pos):
             # spread colors to  neighbors to the diagonal
-            if self.is_diagonal(pos, neighbor):
-                # if color is not already the same  
-                if self.getVal(neighbor, grid) != self.getVal(pos, grid):
-                    state = copy.deepcopy(grid)
-                    state = setVal(neighbor, self.getVal(pos, grid), state)
-                    moves.append({'name': f"spread color", "affected_pos": neighbor, 'new_pos': pos, 'state': state})
+            if not self.is_diagonal(pos, neighbor):
             # swap places to the top, bottom, left, or right 
-            else:
                 neighborVal = self.getVal(neighbor, grid)
                 playerVal = self.getVal(pos, grid)
                 state = copy.deepcopy(grid)
                 state = setVal(neighbor, playerVal, state)
                 state = setVal(pos, neighborVal, state)
                 moves.append({'name': "swap places", 'affected_pos': pos,  'new_pos': neighbor, 'state': state})
+            else:
+                # if color is not already the same  
+                if self.getVal(neighbor, grid) != self.getVal(pos, grid):
+                    state = copy.deepcopy(grid)
+                    state = setVal(neighbor, self.getVal(pos, grid), state)
+                    moves.append({'name': f"spread color", "affected_pos": neighbor, 'new_pos': pos, 'state': state})
         return moves
     def makeRandomMove(self):
         moves = self.moves()
@@ -128,6 +126,7 @@ class Board():
     # create a decision tree
     def decisionTree(self, parent = None):
         if parent is None: # if parent is none, it's the first call
+            self.branches = [] # create an empty list to store branches
             self.tree = [] # create an empty tree
             parent = Node(state=self.grid, parent=parent, action=self.pos) # create a node for the current position
             self.tree.append(parent) # add the parent node to the tree
@@ -145,13 +144,16 @@ class Board():
                 self.explored.add(pGrid) # add the print output to the explored set
                 if grid != self.goal:
                     self.decisionTree(node) # recursively call the decision tree with the new grid and moves
-                elif self.branchDup: # if goal reached, record path
+                else: # if goal reached, record path
                     branch = [node]
                     while node.parent is not None:
                         node = node.parent
                         branch.append(node)
                     branch.reverse()
                     self.branches.append(branch)
+    def goal_tree(self): # all roads lead to goal
+        # flatten list of branches
+        self.tree = [node for branch in self.branches for node in branch] 
     def group_tree(self):
         print('Grouping tree')
         distances = []
