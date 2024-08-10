@@ -48,6 +48,8 @@ class BoardSVG(Board):
             tier_size = sum([len(group) for group in tier.values()]) + len(tier) - 1
             x_start = width/bw/2 - tier_size/2
             x = x_start
+            # order tier by x pos of parents
+                           
             for parent, group in tier.items():  # for each parent group
                 tier_xs = []
                 if parent in pos_list:
@@ -55,8 +57,12 @@ class BoardSVG(Board):
                          x = max(max(tier_xs) + 1, pos_list[parent][0]/bw - 1)
                     else:
                          x = pos_list[parent][0]/bw - 1
+                parent_positions = [pos_list[parent] for parent in tier.keys() if parent in pos_list]
+                # order nodes by x pos of parents
+                group = sorted(group, key=lambda node: parent_positions.index(pos_list[node.parent]) if node.parent in pos_list else 0)
                 for node in group:
                     grid = node.state
+
                     goal = False
                     if grid == self.goal:
                         goal = True

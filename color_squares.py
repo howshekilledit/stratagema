@@ -274,66 +274,58 @@ class Board():
             time.sleep(1)
         print('Goal!')
     def set_frontier(self, frontier_type):
+        self.frontier_type = frontier_type
         if frontier_type == 'stack':
             self.frontier = StackFrontier()
         if frontier_type == 'queue':
             self.frontier = QueueFrontier()
         self.frontier.add(Node(self.grid, None, None))
         self.explored = set()
+        self.solution = False
     def solve_bfs(self):
         self.set_frontier('queue')
         self.solve()
     def solve_dfs(self):
         self.set_frontier('stack')
         self.solve()
-    def solve_step(self): # solve one step at a time (type depends on the frontier)
+    def solve(self):
+        while not self.frontier.empty():
+            self.solve_step()
+            if self.solution:
+                break
+    def solve_step(self, output = False):
         if self.frontier.empty():
+            print('No solution')
             return None
         node = self.frontier.remove()
         self.removed = node.state
+        if output:
+            print('Removed:', self.print(node.state, node.action, False))
         if node.state == self.goal:
-            print('Goal!')
-            return
-        self.explored.add(str(node.state))
-        for move in self.moves(node.action, node.state):
+            self.solution = []
+            while node.parent is not None:
+                self.solution.append(node)
+                node = node.parent
+            self.solution.reverse()
+            for node in self.solution:
+                self.print(node.state, node.action)
+        self.explored.add(self.print(node.state, node.action, False))
+        if node.action is not None:
+            pos = node.action
+        else:
+            pos = self.pos
+        self.expanded = []
+        for move in self.moves(pos, node.state):
             grid = move['state']
             pos = move['new_pos']
-            if not self.frontier.contains_state(grid)  and str(grid) not in self.explored:
+            if not self.frontier.contains_state(grid) and self.print(grid, pos, False) not in self.explored:
                 child = Node(state=grid, parent=node, action=pos)
+                self.expanded.append(child)
                 self.frontier.add(child)
-    def solve(self):
-        cost = 0
-        while True:
-            if self.frontier.empty():
-                print('No solution')
-                return None
-            node = self.frontier.remove()
-            self.removed = node.state
-            if node.state == self.goal:
-                self.solution = []
-                while node.parent is not None:
-                    self.solution.append(node)
-                    node = node.parent
-                self.solution.reverse()
-                for node in self.solution:
-                    self.print(node.state, node.action)
-                    print('-'*self.width)
-                print('Goal!')
-                return
-            self.explored.add(self.print(node.state, node.action, False))
-            if node.action is not None:
-                pos = node.action
-            else:
-                pos = self.pos
-            for move in self.moves(pos, node.state):
-                grid = move['state']
-                pos = move['new_pos']
-                if not self.frontier.contains_state(grid) and self.print(grid, pos, False) not in self.explored:
-                    child = Node(state=grid, parent=node, action=pos)
-                    self.frontier.add(child)
+        return node
 if __name__ == '__main__':
-    board = Board(2, 2, start = [['B', 'b'], ['y', 'b']])
-    board.print()
-    print('-'*board.width)
-    board.solve_bfs()
-    #board.render_tree(board.decisionTree())
+    board = Board(2, 2, start = [['m', 'C'], ['m', 'c']])
+    board.set_frontier('queue')
+    while not board.solution:
+        board.solve_step(True)
+
