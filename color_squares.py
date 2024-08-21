@@ -8,17 +8,6 @@ import copy
 # 2. Each cell is colored magenta or cyan (m or c)
 # 3. For each turn, the player can swap with an adjacent cell (up, down, left, right) or spread color to a diagonal cell (up-left, up-right, down-left, down-right).
 
-class intVector(): # vector class with integer coordinates
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-
-def setVal(vec, val, grid): 
-    x, y = vec.x, vec.y
-    grid[y][x] = val
-    return grid
-
 class Board():
     def __init__(self, width = 2, height = 2, start = False):
         print('Creating board')
@@ -103,9 +92,6 @@ class Board():
         if y < self.height - 1:
             neighbors.append(intVector(x, y+1))
         return neighbors
-
-    def is_diagonal(self, pos1, pos2):
-        return (abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y)) == 2
     
     def getVal(self, vec, grid = False):
         if not grid:
@@ -124,7 +110,7 @@ class Board():
         grid = self.get_grid(parent.state)
         moves = []
         for neighbor in self.neighbors(pos):
-            if not self.is_diagonal(pos, neighbor):
+            if not is_diagonal(pos, neighbor):
             # swap places to the top, bottom, left, or right 
                 neighborVal = self.getVal(neighbor, grid)
                 playerVal = self.getVal(pos, grid)
@@ -196,6 +182,20 @@ class Board():
             if not self.frontier.contains_state(state) and state not in self.explored:
                 child = Node(state=state, parent=node, action=pos)
                 self.frontier.add(child)
+
+def is_diagonal(pos1, pos2):
+    return (abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y)) == 2
+
+class intVector(): # vector class with integer coordinates
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+def setVal(vec, val, grid): 
+    x, y = vec.x, vec.y
+    grid[y][x] = val
+    return grid
+
 if __name__ == '__main__':
     board = Board(2, 2, start = [['m', 'C'], ['m', 'c']])
     board.set_frontier('queue')
