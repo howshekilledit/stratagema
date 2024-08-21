@@ -144,11 +144,11 @@ class Board():
     def solve_random(self):
         parent = Node(state = self.state, action = self.pos, parent = None)
         self.string_state(console = True)
+        self.print_break()
         while not self.terminal():
             parent = self.makeRandomMove(parent)
-            self.string_state(console = True)
-            time.sleep(1)
-    
+        self.record_solution(parent)
+
     def set_frontier(self, frontier): # set the frontier to be used for the search
         if frontier == 'stack':
             self.frontier = StackFrontier()
@@ -160,20 +160,26 @@ class Board():
         self.explored = set()
         self.solution = False
     
+    def print_break(self):
+        print('-' * self.width)
+    def record_solution(self, node): # record the solution path
+        self.solution = []
+        while node.parent is not None:
+            self.solution.append(node)
+            node = node.parent
+        self.solution.reverse()
+        for node in self.solution:
+            print(node.state)
+            self.print_break()
+        print('Goal!')
+    
     def solve_step(self): # solve one step at a time (type depends on the frontier)
         if self.frontier.empty():
             return None
         node = self.frontier.remove()
         self.removed = node.state
         if self.terminal(self.get_grid(node.state)):            
-            self.solution = []
-            while node.parent is not None:
-                self.solution.append(node)
-                node = node.parent
-            self.solution.reverse()
-            for node in self.solution:
-                print(node.state)
-            print('Goal!')
+            self.record_solution(node)
             return
         self.explored.add(node.state)
         for move in self.moves(node):
@@ -182,6 +188,9 @@ class Board():
             if not self.frontier.contains_state(state) and state not in self.explored:
                 child = Node(state=state, parent=node, action=pos)
                 self.frontier.add(child)
+    def solve(self):
+        while not board.solution:
+            board.solve_step()
 
 def is_diagonal(pos1, pos2):
     return (abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y)) == 2
@@ -198,11 +207,12 @@ def setVal(vec, val, grid):
 
 if __name__ == '__main__':
     board = Board(2, 2, start = [['m', 'C'], ['m', 'c']])
-    board.set_frontier('queue')
     # print board
     board.string_state(console = True)
-    
-    while not board.solution:
-        board.solve_step()
+    # print break
+    board.print_break()
+    board.set_frontier('queue')
+    board.solve()
+    board.print_break()
     board.solve_random()
 
