@@ -2,4 +2,5 @@ numpy
 opencv-python
 svgwrite
 vpython
+pyglet
 #p5
