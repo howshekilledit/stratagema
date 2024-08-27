@@ -1,17 +1,15 @@
 import pyglet
-from pyglet.window import key
 from pyglet.gl import glClearColor
 from pyglet import shapes
-from random import choice
-from color_squares import *
 import random
+from stratagema import *
+
 
 # Board Config
-CELL_SIZE = 100
+CELL_SIZE = 50  # Adjust size to fit more grids on the screen
 ROWS = 2
 COLS = 2
-WINDOW_WIDTH = COLS * CELL_SIZE
-WINDOW_HEIGHT = ROWS * CELL_SIZE
+MARGIN = 20  # Space between grids
 
 # Colors
 CYAN = (0, 255, 255)
@@ -19,48 +17,41 @@ MAGENTA = (255, 0, 255)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
+
 class PygletBoard(Board):
     def __init__(self, width, height, start):
         super().__init__(width, height, start)
-        self.window = pyglet.window.Window(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.window_height = WINDOW_HEIGHT = (ROWS * CELL_SIZE + MARGIN) * 1
+        self.window_width = COLS * CELL_SIZE
+        self.window = pyglet.window.Window(self.window_width, self.window_height)
         self.batch = pyglet.graphics.Batch()
-        self.shapes = []
-        self.create_grid()
+        self.grids = []
+        self.create_grid(0)
 
-    def create_grid(self):
+    def create_grid(self, y_offset):
+        grid_shapes = []
         for y in range(self.height):
             for x in range(self.width):
                 color = MAGENTA if self.grid[y][x] == 'm' else CYAN
-                rect = shapes.Rectangle(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE, color=color, batch=self.batch)
-                self.shapes.append(rect)
-                # draw a circle over self.pos
-        x, y = self.pos.x, self.pos.y
-        circle = shapes.Circle(x * CELL_SIZE + CELL_SIZE // 2, y * CELL_SIZE + CELL_SIZE // 2, CELL_SIZE // 4, color=WHITE, batch=self.batch)
-        self.shapes.append(circle)
-
-    def update_grid(self):
-        for y in range(self.height):
-            for x in range(self.width):
-                idx = y * self.width + x
-                color = MAGENTA if self.grid[y][x] == 'm' else CYAN
-                self.shapes[idx].color = color
-        # update circle position
-        x, y = self.pos.x, self.pos.y
-        self.shapes[-1].x = x * CELL_SIZE + CELL_SIZE // 2
-
-    def draw(self):
-        glClearColor(0, 0, 0, 1)  # Clear the screen with black
-        self.window.clear()
-        self.batch.draw()
-
-    def on_draw(self):
-        self.window.clear()
-        self.draw()
+                rect = shapes.Rectangle(
+                    x * CELL_SIZE, y * CELL_SIZE + y_offset, CELL_SIZE, CELL_SIZE, color=color, batch=self.batch
+                )
+                grid_shapes.append(rect)
+        self.grids.append(grid_shapes)
 
     def move_player(self):
         parent = Node(state=self.state, action=self.pos, parent=None)
         self.makeRandomMove(parent)
-        self.update_grid()
+        # Calculate new y_offset based on the number of grids shown
+        y_offset = (len(self.grids) * (ROWS * CELL_SIZE + MARGIN))
+        self.create_grid(y_offset)
+        # Resize window to fit the new grid
+        self.window.set_size(self.window_width, y_offset + ROWS * CELL_SIZE + MARGIN)
+
+    def on_draw(self):
+        glClearColor(0, 0, 0, 1)  # Clear the screen with black
+        self.window.clear()
+        self.batch.draw()
 
     def start(self):
         @self.window.event
@@ -73,6 +64,7 @@ class PygletBoard(Board):
 
         pyglet.clock.schedule_interval(update, 1.0)  # Update every second
         pyglet.app.run()
+
 
 if __name__ == "__main__":
     # Create a 2x2 board and visualize it using Pyglet
