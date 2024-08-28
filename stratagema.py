@@ -124,10 +124,10 @@ class Board():
 
             # if state is set, create a new node
             if 'state' in locals():
-                # if state is a list
+                # if state is a list (2D grid), convert it to a string as this includes the player's position
                 if isinstance(state, list):
                     state = self.string_state(state, action, False) # string representation of state
-                move = Node(state = state, action = action, parent = parent)
+                move = None # TODO: set move to a new Node object with the state, action, and parent (see utils.py)
                 moves.append(move)
         return moves
     
