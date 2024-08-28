@@ -6,10 +6,10 @@ import random
 
 # Board Config
 CELL_SIZE = 50  # Adjust size to fit more grids on the screen
-ROWS = 3
-COLS = 3
+ROWS = 2
+COLS = 2
 MARGIN = 20  # Space between grids
-MAX_COLS_PER_ROW = 10  # Maximum number of grids in a row before wrapping
+MAX_COLS_PER_ROW = 5  # Maximum number of grids in a row before wrapping
 
 # Colors
 CYAN = (0, 255, 255)

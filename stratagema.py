@@ -12,7 +12,7 @@ class Board():
     def __init__(self, width = 2, height = 2, start = False):
         print('Creating board')
 
-        # the board can be any size, but for our purposes, we'll use a 2x2 grid
+        # the board can be any size, but for most purposes, we'll use a 2x2 grid
         self.width = width
         self.height = height
         
@@ -105,6 +105,7 @@ class Board():
             self.grid[y][x] = val
         else: 
             return setVal(vec, val, self.grid)
+
     def moves(self, parent):
         pos = parent.action
         grid = self.get_grid(parent.state)
@@ -118,13 +119,9 @@ class Board():
                 state = setVal(neighbor, playerVal, state)
                 state = setVal(pos, neighborVal, state)
                 action = neighbor # new position
-            # spread colors to  neighbors to the diagonal
-            else:
-                # if color is not already the same  
-                if self.getVal(neighbor, grid) != self.getVal(pos, grid):
-                    state = copy.deepcopy(grid)
-                    state = setVal(neighbor, self.getVal(pos, grid), state)
-                    action = pos # position stays the same
+
+            # TODO: add diagonal moves, which spraed the player's color to a diagonal cell
+
             # if state is set, create a new node
             if 'state' in locals():
                 # if state is a list
@@ -164,6 +161,7 @@ class Board():
     
     def print_break(self):
         print('-' * self.width)
+    
     def record_solution(self, node): # record the solution path
         self.solution = []
         while node.parent is not None:
@@ -190,12 +188,18 @@ class Board():
             if not self.frontier.contains_state(state) and state not in self.explored:
                 child = Node(state=state, parent=node, action=pos)
                 self.frontier.add(child)
+    
     def solve(self):
         while not board.solution:
             board.solve_step()
 
 def is_diagonal(pos1, pos2):
-    return (abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y)) == 2
+    # TODO: check if two positions, which are instances of the intVector class below, are diagonal
+    # return True if they are diagonal, False otherwise
+    raise NotImplementedError()
+
+
+    
 
 class intVector(): # vector class with integer coordinates
     def __init__(self, x, y):
@@ -208,13 +212,10 @@ def setVal(vec, val, grid):
     return grid
 
 if __name__ == '__main__':
-    board = Board(2, 2, start = [['m', 'C'], ['m', 'c']])
+    board = Board(2, 2, start = False)
     # print board
     board.string_state(console = True)
     # print break
-    board.print_break()
-    board.set_frontier('queue')
-    board.solve()
     board.print_break()
     board.solve_random()
 
