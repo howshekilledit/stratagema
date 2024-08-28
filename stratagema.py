@@ -120,14 +120,15 @@ class Board():
                 state = setVal(pos, neighborVal, state)
                 action = neighbor # new position
 
-            # TODO: add diagonal moves, which spraed the player's color to a diagonal cell
+            # TODO 3: add diagonal moves, which spraed the player's color to a diagonal cell
 
             # if state is set, create a new node
             if 'state' in locals():
-                # if state is a list (2D grid), convert it to a string as this includes the player's position
+                # if state is a list
                 if isinstance(state, list):
                     state = self.string_state(state, action, False) # string representation of state
-                move = None # TODO: set move to a new Node object with the state, action, and parent (see utils.py)
+                # TODO 2: change below line to assign move to a Node instance with parent, state, and action
+                move = None  
                 moves.append(move)
         return moves
     
@@ -194,7 +195,7 @@ class Board():
             board.solve_step()
 
 def is_diagonal(pos1, pos2):
-    # TODO: check if two positions, which are instances of the intVector class below, are diagonal
+    # TODO 1: check if two positions, which are instances of the intVector class below, are diagonal
     # return True if they are diagonal, False otherwise
     raise NotImplementedError()
 
