@@ -15,7 +15,7 @@ This assignment builds toward CLO #1 (implementing an intelligent agent) and CLO
 
 Your objective is to complete the game so that the computer eventually wins with random play. 
 
-![image-20240828100909945](image-20240828100909945.png)
+![slide](slide.png)
 
 ### Setup 
 
