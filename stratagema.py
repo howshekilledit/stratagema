@@ -127,7 +127,9 @@ class Board():
                     action = pos # position stays the same
             # if state is set, create a new node
             if 'state' in locals():
-                state = self.string_state(state, action, False) # string representation of state
+                # if state is a list
+                if isinstance(state, list):
+                    state = self.string_state(state, action, False) # string representation of state
                 move = Node(state = state, action = action, parent = parent)
                 moves.append(move)
         return moves

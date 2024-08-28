@@ -1,0 +1,6 @@
+- description: Problem 1, assign variable i an integer value
+  check: MatchCommandFragment
+  options:
+    fragment: "<class 'int'>"
+    count: 1
+    command: python stratagema.py 
