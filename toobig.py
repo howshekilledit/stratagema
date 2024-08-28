@@ -6,6 +6,7 @@ import random
 
 # Board Config
 # TODO 4: Adjust params so that the game cannot be solved randomly in a reasonable amount of time
+# (correct solutions don't need these exact params)
 
 CELL_SIZE = 10  # Adjust size to fit more grids on the screen
 ROWS = 10
