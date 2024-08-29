@@ -44,7 +44,7 @@ Search for `TODO`s in `stratagema.py` to locate objectives and see more details.
 
 2. Toward the bottom of the `moves` function, update the code that each move is represented as a `Node` object, added to the list of moves returned by `moves`. 
 
-   Once steps one and two are completed, running `python3 stratagema.py` or `python runner.py` should start game play and run continuosly. However, without completing step 3, the game cannot tbe won. You can cancel the run with `CTRL+C`. 
+   Once steps one and two are completed, running `python3 stratagema.py` or `python runner.py` should start game play and run continuosly. However, without completing step 3, the game cannot be won. You can cancel the run with `CTRL+C`. 
 
 3. Update the moves function, so it appends a move that spreads the player's color for each diagonal neighbor whose color is different from the player's. Note the use of  [`deep_copy`](https://docs.python.org/3/library/copy.html) used to add **swap** moves. You will want to also use this for **spread** moves. 
 
