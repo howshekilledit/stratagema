@@ -46,7 +46,7 @@ Search for `TODO`s in `stratagema.py` to locate objectives and see more details.
 
    Once steps one and two are completed, running `python3 stratagema.py` or `python runner.py` should start game play and run continuosly. However, without completing step 3, the game cannot be won. You can cancel the run with `CTRL+C`. 
 
-3. Update the moves function, so it appends a move that spreads the player's color for each diagonal neighbor whose color is different from the player's. Note the use of  [`deep_copy`](https://docs.python.org/3/library/copy.html) used to add **swap** moves. You will want to also use this for **spread** moves. 
+3. Update the moves function ti include **spread** moves as well as **swap** moves. For each diagonal neighbor whose color is different from the player's, a move that spreads the player's color to its neighbor should be appended. Note the use of  [`deep_copy`](https://docs.python.org/3/library/copy.html) used to add **swap** moves. You will want to also use this for **spread** moves. 
 
 4. With a 2 X 2 grid, the game is simple enough that random play will lead to an eventual win. But what happens if you expand the grid? Update `toobig.py` with more cells and columns, and run it to see what happens. Keep updating until it's too big to be solved quickly. See if you can change the display params so that the board renders nicely at a reasonable size. (You can also update the colors!)
 
@@ -54,13 +54,15 @@ Search for `TODO`s in `stratagema.py` to locate objectives and see more details.
 
 To receive credit: 
 
-- Show professor or TL your group's your running code. First, run `runner.py` (the game should solve itself pretty quickly), then `toobig.py` (the game probably won't solve itself anytime soon).
+- Show professor or TL your group's your running code. First, run `runner.py` (the game should solve itself pretty quickly), then `toobig.py` (the game probably won't solve itself anytime soon). The game play should match the rules described at the top of this document. 
 
 - Make at least one commit to the repo
 
 - Answer one of the following questions verbally with professor or TL. You can decide ahead of time which group member will answer each question. 
 
 ### Verbal Questions
+
+Each group member should be prepared to answer one question. 
 
 1. How does the `is_diagonal` function tell if two neighboring cells are diagonal from one another?
 2. Name and describe one of the parameters used to generate a `Node` instance. 
