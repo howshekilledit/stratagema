@@ -13,7 +13,18 @@ This assignment builds toward CLO #1 (implementing an intelligent agent) and CLO
 
 ## Objectives 
 
-Your objective is to complete the game so that the computer eventually wins with random play. 
+### Game Play 
+
+Your goal is to make the whole board your color. The initial state of the board is selected at random. You are located at the square with the dot in it. We will start by imagining this game with a single player.
+
+You have two types of move you can make:
+
+- Swapping positions with a neighbor square up, down, left, right.
+- Spreading your color to a diagonal neighbor of another color. 
+
+### Coding Objectives 
+
+The coding objective is to complete the game so that the computer eventually wins with random play. 
 
 ![image](https://github.com/user-attachments/assets/4e1c583c-0a8d-4994-a2cc-62d367d452bf)
 
