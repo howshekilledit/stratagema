@@ -5,7 +5,7 @@ from pyglet import shapes
 import random
 
 # Board Config
-CELL_SIZE = 50  # Adjust size to fit more grids on the screen
+CELL_SIZE = 20  # Adjust size to fit more grids on the screen
 ROWS = 2
 COLS = 2
 MARGIN = 20  # Space between grids
@@ -47,10 +47,14 @@ class PygletBoard(Board):
 
     def move_player(self):
         parent = Node(state=self.state, action=self.pos, parent=None)
-        self.makeRandomMove(parent)
-
+        #self.makeRandomMove(parent)
+        node = self.solution[self.solution_position]
+        self.pos = node.action
+        self.state = node.state
+        self.grid = self.get_grid()
         # Calculate new grid position based on the number of grids drawn
-        num_grids = len(self.grids)
+        # num_grids = len(self.grids)
+        num_grids = self.solution_position
         row_index = num_grids // MAX_COLS_PER_ROW  # Row index
         col_index = num_grids % MAX_COLS_PER_ROW  # Column index within the row
 
@@ -58,17 +62,18 @@ class PygletBoard(Board):
         y_offset = row_index * (ROWS * CELL_SIZE + MARGIN)  # Decrease y_offset to move down
 
         self.create_grid(x_offset, y_offset)
-
+        
         # Resize window height if a new row is added
         new_window_height = (row_index + 1) * (ROWS * CELL_SIZE + MARGIN)
         self.window.set_size(self.window_width, new_window_height)
-
+        self.solution_position += 1
     def on_draw(self):
         glClearColor(0, 0, 0, 1)  # Clear the screen with black
         self.window.clear()
         self.batch.draw()
 
     def start(self):
+        self.solution_position = 0
         @self.window.event
         def on_draw():
             self.on_draw()
@@ -84,5 +89,8 @@ class PygletBoard(Board):
 if __name__ == "__main__":
     # Create a 2x2 board and visualize it using Pyglet
     pyglet_board = PygletBoard(ROWS, COLS)
+    pyglet_board.set_frontier('stack')
+    pyglet_board.solve()
     pyglet_board.start()
+    print(pyglet_board.solution)
 

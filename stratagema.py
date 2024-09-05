@@ -191,8 +191,8 @@ class Board():
                 child = Node(state=state, parent=node, action=pos)
                 self.frontier.add(child)
     def solve(self):
-        while not board.solution:
-            board.solve_step()
+        while not self.solution:
+            self.solve_step()
 
 def is_diagonal(pos1, pos2):
     return (abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y)) == 2
