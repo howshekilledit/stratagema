@@ -31,12 +31,21 @@ class Board3D(Board):
             s = self.cell_size
         colors = {'r': color.red, 'g': color.green, 'b': color.blue, 'c': color.cyan, 'm': color.magenta, 'y': color.yellow, 'w': color.white, 'k': color.black}
         x_off, y_off = origin
-        shapes = []
+        node_shapes = []
         for y, row in enumerate(grid):
             for x, cell in enumerate(row):
-                b = box(pos=vector(x*s+x_off, y*s+y_off, 1), size=vector(s, s, s), color=colors[cell.lower()])
-                shapes.append(b)
-        return shapes
+                pos = vector(x*s+x_off, y*s+y_off, 1)
+                if cell.isupper():
+                    # cut a hole out of the box
+                    box_shape = shapes.rectangle(xscale = 1, yscale = 1)
+                    circ_shape = shapes.circle(radius = 0.25)
+                    zpath = [vec(0, 0, 0), vec(0, 0, 1)]
+                    b = extrusion(shape = [box_shape, circ_shape], path = zpath, color = colors[cell.lower()], pos = pos)
+                else:
+                    b = box(pos=pos, size=vector(s, s, s), color=colors[cell.lower()])
+                node_shapes.append(b)
+
+        return node_shapes
 
     def drawFrontier(self):
         for i, node in enumerate(self.frontier.frontier):

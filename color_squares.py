@@ -102,20 +102,20 @@ class Board():
         moves = []
         for neighbor in self.neighbors(pos):
             # spread colors to  neighbors to the diagonal
-            if not self.is_diagonal(pos, neighbor):
-            # swap places to the top, bottom, left, or right 
+            if self.is_diagonal(pos, neighbor):
+                # if color is not already the same  
+                if self.getVal(neighbor, grid) != self.getVal(pos, grid):
+                    state = copy.deepcopy(grid)
+                    state = setVal(neighbor, self.getVal(pos, grid), state)
+                    moves.append({'name': f"spread color", "affected_pos": neighbor, 'new_pos': pos, 'state': state})
+            else:
+                # swap places to the top, bottom, left, or right 
                 neighborVal = self.getVal(neighbor, grid)
                 playerVal = self.getVal(pos, grid)
                 state = copy.deepcopy(grid)
                 state = setVal(neighbor, playerVal, state)
                 state = setVal(pos, neighborVal, state)
                 moves.append({'name': "swap places", 'affected_pos': pos,  'new_pos': neighbor, 'state': state})
-            else:
-                # if color is not already the same  
-                if self.getVal(neighbor, grid) != self.getVal(pos, grid):
-                    state = copy.deepcopy(grid)
-                    state = setVal(neighbor, self.getVal(pos, grid), state)
-                    moves.append({'name': f"spread color", "affected_pos": neighbor, 'new_pos': pos, 'state': state})
         return moves
     def makeRandomMove(self):
         moves = self.moves()
