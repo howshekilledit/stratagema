@@ -1,5 +1,1 @@
-numpy
-opencv-python
-svgwrite
-vpython
-#p5
+pyglet
