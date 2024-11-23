@@ -187,6 +187,7 @@ class Board {
 		this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
 	}
 	terminal() {
+		console.log(this.grid.flat());
 		return new Set(this.grid.flat()).size === 1;
 	}
 
@@ -296,6 +297,10 @@ function handleCellClick(x, y, board, board_shapes, cellSize) {
 		board.makeMove(clickedPos, 1);
 		redrawGrid(board, board_shapes, cellSize);
 	}
+	// check fo rwinner
+	if (board.terminal()) {
+		alert(`Winner is ${board.winner()}`);
+	}
 }
 
 function redrawGrid(board, board_shapes, cellSize) {
@@ -322,16 +327,43 @@ function redrawGrid(board, board_shapes, cellSize) {
 board = new Board(3, 3);
 board_shapes = initializeSVG(board);
 
+// create an indicator with whose turn it is
+let turnIndicator = document.createElement("div");
+turnIndicator.innerHTML = "Player 1's turn";
+document.body.appendChild(turnIndicator);
+// turnIndicator is cyan
+turnIndicator.style.color = "#00FFFF";
+// turn Indicator stuck to top left
+turnIndicator.style.position = "absolute";
+turnIndicator.style.top = "0";
+turnIndicator.style.left = "0"
+
 setInterval(() => {
 	if (board.currentPlayer === 2) {
-		const bestMove = board.findBestMove();
-		board.makeMove(bestMove, 2);
-		redrawGrid(board, board_shapes, 400 / board.width);
-		board.switchPlayer();
-	} else {
-		// Player 1 has three seconds
+		// player 2 keeps making moves for three seconds
+		let i = 0;
+		let ai_plays = setInterval(() => {
+			const bestMove = board.findBestMove();
+			board.makeMove(bestMove, 2);
+			redrawGrid(board, board_shapes, 400 / board.width);
+			if (board.terminal()) {
+				clearInterval(ai_plays);
+				alert(`Winner is ${board.winner()}`);
+			}
+			i++;
+			if (i === 3) {
+				clearInterval(ai_plays);
+			}
+			
+		}, 500);
 		setTimeout(() => {
+			turnIndicator.innerHTML = "Player 1's turn";
+			turnIndicator.style.color = "#00FFFF";
 			board.switchPlayer();
-		}, 3000);
+		}, 1800);
+	} else {
+		turnIndicator.innerHTML = "Player 2's turn";
+		turnIndicator.style.color = "#FF00FF";
+		board.switchPlayer();
 	}
-}, 6000); 
+}, 4000); 
