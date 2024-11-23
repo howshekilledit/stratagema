@@ -181,10 +181,11 @@ class Board {
 
 			}
 		}
-		this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
 		return true;
 	}
-
+	switchPlayer() {
+		this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+	}
 	terminal() {
 		return new Set(this.grid.flat()).size === 1;
 	}
@@ -292,19 +293,8 @@ function handleCellClick(x, y, board, board_shapes, cellSize) {
 	const clickedPos = new IntVector(x, y);
 
 	if (board.currentPlayer === 1) {
-		if (board.makeMove(clickedPos, 1)) {
-			redrawGrid(board, board_shapes, cellSize);
-
-			// AI makes its move
-			const bestMove = board.findBestMove();
-			// wait for 1 second before AI makes its move
-			setTimeout(() => {
-				if (bestMove) {
-					board.makeMove(bestMove, 2);
-					redrawGrid(board, board_shapes, cellSize);
-				}
-			}, 1000);
-				}
+		board.makeMove(clickedPos, 1);
+		redrawGrid(board, board_shapes, cellSize);
 	}
 }
 
@@ -325,10 +315,23 @@ function redrawGrid(board, board_shapes, cellSize) {
 
 	if (board.terminal()) {
 		alert(`Winner is ${board.winner()}`);
+	
 	}
-}
+	}
 
-// Initialize board with separate player positions
-const board = new Board(3, 3);
-const draw = initializeSVG(board);
-// player 1 has three seconds to make as many moves as they can
+board = new Board(3, 3);
+board_shapes = initializeSVG(board);
+
+setInterval(() => {
+	if (board.currentPlayer === 2) {
+		const bestMove = board.findBestMove();
+		board.makeMove(bestMove, 2);
+		redrawGrid(board, board_shapes, 400 / board.width);
+		board.switchPlayer();
+	} else {
+		// Player 1 has three seconds
+		setTimeout(() => {
+			board.switchPlayer();
+		}, 3000);
+	}
+}, 6000); 
