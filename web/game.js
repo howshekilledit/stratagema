@@ -10,7 +10,7 @@ function isDiagonal(pos1, pos2) {
 }
 
 class Board {
-	constructor(width = 3, height = 3, start = null) {
+	constructor(width = 3, height = 3, start = null, currentPlayer = 1) {
 		this.width = width;
 		this.height = height;
 		this.player1 = "c"; // Player 1: Cyan
@@ -46,8 +46,7 @@ class Board {
 			this.pos2 = mCells[Math.floor(Math.random() * mCells.length)];
 
 			
-			this.char1 = this.getVal(this.pos1);
-			this.char2 = this.getVal(this.pos2);
+		
 
 			// Ensure there is at least one difference in grid
 			if (new Set(this.grid.flat()).size === 1) {
@@ -55,12 +54,29 @@ class Board {
 				this.grid[y][x] = this.grid[y][x] === "m" ? "c" : "m";
 			}
 		} else {
-			// Initialization from a given state (if required)
-			this.grid = start.map(row => [...row]);
-			// Handle initialization logic for pos1 and pos2
-		}
+			//decode start from string state
+			this.grid = start.split("\n").map(row => row.split(""));
+			//get capital letters from grid and assign to pos1 and pos2
+			for (let y = 0; y < height; y++) {
+				for (let x = 0; x < width; x++) {
+					if (this.grid[y][x] === "C") {
+						this.pos1 = new IntVector(x, y);
+						// lower case in grid
+							
+						this.grid[y][x] = "c";
+					}
+					if (this.grid[y][x] === "M") {
+						this.pos2 = new IntVector(x, y);
+						// lower case in grid
+						this.grid[y][x] = "m";
+					}
+				}
+			}
 
-		this.currentPlayer = 1; // 1 for Player 1, 2 for Player 2
+		}	
+		this.char1 = this.getVal(this.pos1);
+		this.char2 = this.getVal(this.pos2);
+		this.currentPlayer = currentPlayer; // 1 for Player 1, 2 for Player 2
 	}
 
 	getVal(vec) {
@@ -91,13 +107,16 @@ class Board {
 	validMoves(pos, char) {
 		let valid = [];
 		for (const n of this.neighbors(pos)) {
-			if (isDiagonal(pos, n)) {
-				if (this.getVal(n) !== char) {
+			// check that other player isn't there and it's not the current position
+			//if (!(n.x === this.pos1.x & n.y === this.pos1.y) & !(n.x === this.pos2.x & n.y === this.pos2.y)) {
+				if (isDiagonal(pos, n)) {
+					if (this.getVal(n) !== char) {
+						valid.push(n);
+					}
+				} else {
 					valid.push(n);
 				}
-			} else {
-				valid.push(n);
-			}
+			//}
 		}
 		return valid;
 	}
@@ -105,7 +124,6 @@ class Board {
 	makeMove(pos, player) {
 		const currentPos = player === 1 ? this.pos1 : this.pos2;
 		const currentChar = player === 1 ? this.char1 : this.char2;
-
 		if (!this.validMoves(currentPos, currentChar).some(n => n.x === pos.x && n.y === pos.y)) {
 			return false; // Invalid move
 		}
@@ -120,10 +138,44 @@ class Board {
 
 		if (player === 1) {
 			this.pos1 = pos;
+			if(this.pos1.x === this.pos2.x && this.pos1.y === this.pos2.y){
+			// if currentPos color is player 2 color
+				if (this.getVal(currentPos) === this.char2) {
+					this.pos2 = currentPos;
+				} else {
+					//move player 2 to any square that is their oolor
+					const mCells = [];
+					for (let y = 0; y < this.height; y++) {
+						for (let x = 0; x < this.width; x++) {
+							if (this.grid[y][x] === "m") {
+								mCells.push(new IntVector(x, y));
+							}
+						}
+					}
+					this.pos2 = mCells[Math.floor(Math.random() * mCells.length)];
+				}
+			}
 		} else {
 			this.pos2 = pos;
-		}
+			if(this.pos1.x === this.pos2.x && this.pos1.y === this.pos2.y){
+			// if currentPos color is player 1 color
+				if (this.getVal(currentPos) === this.char1) {
+					this.pos1 = currentPos;
+				} else {
+					//move player 1 to any square that is their color
+					const cCells = [];
+					for (let y = 0; y < this.height; y++) {
+						for (let x = 0; x < this.width; x++) {
+							if (this.grid[y][x] === "c") {
+								cCells.push(new IntVector(x, y));
+							}
+						}
+					}
+					this.pos1 = cCells[Math.floor(Math.random() * cCells.length)];
+				}
 
+			}
+		}
 		this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
 		return true;
 	}
@@ -135,15 +187,26 @@ class Board {
 	winner() {
 		return this.grid.flat()[0];
 	}
-
-	evaluate() {
+	result(grid, move) {
+		// Returns the board state after applying the move
+		const newBoard = new Board(this.width, this.height, grid, this.currentPlayer);
+		newBoard.makeMove(move, this.currentPlayer);
+		return newBoard;
+	}
+	evaluate(grid = this.grid) {
 		// Evaluation logic for the board state
-		const player1Score = this.grid.flat().filter(c => c === "c").length;
-		const player2Score = this.grid.flat().filter(c => c === "m").length;
+		const player1Score = grid.flat().filter(c => c === "c").length;
+		const player2Score = grid.flat().filter(c => c === "m").length;
 		return player2Score - player1Score;
 	}
-
-	minimax(depth, alpha, beta, isMaximizing) {
+	stringState() {
+		// capitalize playe rpositions
+		const grid = this.grid;
+		grid[this.pos1.y][this.pos1.x] = "C";
+		grid[this.pos2.y][this.pos2.x] = "M";
+		return grid.map(row => row.join("")).join("\n");
+	}
+	minimax(depth, alpha, beta, grid, isMaximizing) {
 		if (depth === 0 || this.terminal()) {
 			return this.evaluate();
 		}
@@ -151,20 +214,19 @@ class Board {
 		if (isMaximizing) {
 			let maxEval = -Infinity;
 			for (const move of this.validMoves(this.pos2, this.char2)) {
-				this.makeMove(move, 2);
-				const evaluation = this.minimax(depth - 1, alpha, beta, false);
-				this.makeMove(move, 2);
+				let result = this.result(this.stringState(), move);
+				const evaluation = this.minimax(depth - 1, alpha, beta, result, false);
 				maxEval = Math.max(maxEval, evaluation);
 				alpha = Math.max(alpha, evaluation);
 				if (beta <= alpha) break;
+
 			}
 			return maxEval;
 		} else {
 			let minEval = Infinity;
 			for (const move of this.validMoves(this.pos1, this.char1)) {
-				this.makeMove(move, 1);
-				const evaluation = this.minimax(depth - 1, alpha, beta, true);
-				this.makeMove(move, 1);
+				let result = this.result(this.stringState(), move);
+				const evaluation = this.minimax(depth - 1, alpha, beta, result, true);
 				minEval = Math.min(minEval, evaluation);
 				beta = Math.min(beta, evaluation);
 				if (beta <= alpha) break;
@@ -177,9 +239,7 @@ class Board {
 		let bestEval = -Infinity;
 		let bestMove = null;
 		for (const move of this.validMoves(this.pos2, this.char2)) {
-			this.makeMove(move, 2);
-			const evaluation = this.minimax(3, -Infinity, Infinity, false);
-			this.makeMove(move, 2);
+			const evaluation = this.minimax(10, -Infinity, Infinity, this.grid, true);
 			if (evaluation > bestEval) {
 				bestEval = evaluation;
 				bestMove = move;
@@ -190,7 +250,6 @@ class Board {
 
 
 }
-	// ... (rest of the logic, e.g., minimax, findBestMove)
 
 
 function initializeSVG(board) {
@@ -247,7 +306,7 @@ function handleCellClick(x, y, board, board_shapes, cellSize) {
 function redrawGrid(board, board_shapes, cellSize) {
 	for (let y = 0; y < board.height; y++) {
 		for (let x = 0; x < board.width; x++) {
-			const color = board.grid[y][x] === "m" ? "#FF00FF" : "#00FFFF";
+			const color = (board.grid[y][x] === "m" | board.grid[y][x] === 'M') ? "#FF00FF" : "#00FFFF";
 			board_shapes[y][x].attr({ fill: color });
 		}
 	}
