@@ -63,17 +63,21 @@ class Board {
 						this.pos1 = new IntVector(x, y);
 						// lower case in grid
 							
-						this.grid[y][x] = "c";
 					}
 					if (this.grid[y][x] === "M") {
 						this.pos2 = new IntVector(x, y);
 						// lower case in grid
-						this.grid[y][x] = "m";
 					}
 				}
 			}
 
-		}	
+		}
+		// lowercase all cells in grid
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				this.grid[y][x] = this.grid[y][x].toLowerCase();
+			}
+		}
 		this.char1 = this.getVal(this.pos1);
 		this.char2 = this.getVal(this.pos2);
 		this.currentPlayer = currentPlayer; // 1 for Player 1, 2 for Player 2
@@ -110,7 +114,7 @@ class Board {
 			// check that other player isn't there and it's not the current position
 			//if (!(n.x === this.pos1.x & n.y === this.pos1.y) & !(n.x === this.pos2.x & n.y === this.pos2.y)) {
 				if (isDiagonal(pos, n)) {
-					if (this.getVal(n) !== char) {
+					if (this.getVal(n).toLowerCase() !== char.toLowerCase()) {
 						valid.push(n);
 					}
 				} else {
@@ -141,13 +145,14 @@ class Board {
 			if(this.pos1.x === this.pos2.x && this.pos1.y === this.pos2.y){
 			// if currentPos color is player 2 color
 				if (this.getVal(currentPos) === this.char2) {
-					this.pos2 = currentPos;
+					this.pos2 = currentPos; //swap if swap move 
 				} else {
+					// if spread move, move other player to any square that is their color
 					//move player 2 to any square that is their oolor
 					const mCells = [];
 					for (let y = 0; y < this.height; y++) {
 						for (let x = 0; x < this.width; x++) {
-							if (this.grid[y][x] === "m") {
+							if (this.grid[y][x].toLowerCase() === "m") {
 								mCells.push(new IntVector(x, y));
 							}
 						}
@@ -166,7 +171,7 @@ class Board {
 					const cCells = [];
 					for (let y = 0; y < this.height; y++) {
 						for (let x = 0; x < this.width; x++) {
-							if (this.grid[y][x] === "c") {
+							if (this.grid[y][x].toLowerCase() === "c") {
 								cCells.push(new IntVector(x, y));
 							}
 						}
@@ -239,7 +244,7 @@ class Board {
 		let bestEval = -Infinity;
 		let bestMove = null;
 		for (const move of this.validMoves(this.pos2, this.char2)) {
-			const evaluation = this.minimax(10, -Infinity, Infinity, this.grid, true);
+			const evaluation = this.minimax(3, -Infinity, Infinity, this.grid, true);
 			if (evaluation > bestEval) {
 				bestEval = evaluation;
 				bestMove = move;
@@ -326,4 +331,4 @@ function redrawGrid(board, board_shapes, cellSize) {
 // Initialize board with separate player positions
 const board = new Board(3, 3);
 const draw = initializeSVG(board);
-
+// player 1 has three seconds to make as many moves as they can
