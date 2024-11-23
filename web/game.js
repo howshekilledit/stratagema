@@ -187,8 +187,9 @@ class Board {
 		this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
 	}
 	terminal() {
-		console.log(this.grid.flat());
-		return new Set(this.grid.flat()).size === 1;
+		// lowercase grid
+		let grid = this.grid.map(row => row.map(cell => cell.toLowerCase()));
+		return new Set(grid.flat()).size === 1;
 	}
 
 	winner() {
@@ -310,18 +311,19 @@ function redrawGrid(board, board_shapes, cellSize) {
 			board_shapes[y][x].attr({ fill: color });
 		}
 	}
-
-	// Update positions of Player 1 and Player 2
-	const player1 = board_shapes[board_shapes.length - 2];
-	const player2 = board_shapes[board_shapes.length - 1];
-
-	player1.move(board.pos1.x * cellSize + cellSize / 2, board.pos1.y * cellSize + cellSize / 2);
-	player2.move(board.pos2.x * cellSize + cellSize / 2, board.pos2.y * cellSize + cellSize / 2);
-
 	if (board.terminal()) {
 		alert(`Winner is ${board.winner()}`);
 	
+	} else {
+
+		// Update positions of Player 1 and Player 2
+		const player1 = board_shapes[board_shapes.length - 2];
+		const player2 = board_shapes[board_shapes.length - 1];
+
+		player1.move(board.pos1.x * cellSize + cellSize / 2, board.pos1.y * cellSize + cellSize / 2);
+		player2.move(board.pos2.x * cellSize + cellSize / 2, board.pos2.y * cellSize + cellSize / 2);
 	}
+
 	}
 
 board = new Board(3, 3);
@@ -338,7 +340,7 @@ turnIndicator.style.position = "absolute";
 turnIndicator.style.top = "0";
 turnIndicator.style.left = "0"
 
-setInterval(() => {
+let play = setInterval(() => {
 	if (board.currentPlayer === 2) {
 		// player 2 keeps making moves for three seconds
 		let i = 0;
@@ -348,10 +350,10 @@ setInterval(() => {
 			redrawGrid(board, board_shapes, 400 / board.width);
 			if (board.terminal()) {
 				clearInterval(ai_plays);
-				alert(`Winner is ${board.winner()}`);
+				clearInterval(play);
 			}
 			i++;
-			if (i === 3) {
+			if (i === 2) {
 				clearInterval(ai_plays);
 			}
 			
@@ -359,11 +361,17 @@ setInterval(() => {
 		setTimeout(() => {
 			turnIndicator.innerHTML = "Player 1's turn";
 			turnIndicator.style.color = "#00FFFF";
+		
 			board.switchPlayer();
-		}, 1800);
+					}, 1500);
 	} else {
+		setTimeout(() => {
 		turnIndicator.innerHTML = "Player 2's turn";
 		turnIndicator.style.color = "#FF00FF";
 		board.switchPlayer();
+		if (board.terminal()) {
+			clearInterval(play);
+		}
+		}, 1800);
 	}
 }, 4000); 
